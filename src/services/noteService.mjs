@@ -10,7 +10,7 @@ import {
 const notes = process.env.NOTES;
 
 export const noteService = {
-  getNote: async (userId) => {
+  getAllNotes: async (userId) => {
     const params = {
       TableName: notes,
       FilterExpression: "userId = :userId",
@@ -21,7 +21,7 @@ export const noteService = {
     return result.Items;
   },
 
-  saveNote: async (userId, { title, text }) => {
+  saveOneNote: async (userId, { title, text }) => {
     const note = {
       id: v4(),
       userId,
@@ -38,7 +38,7 @@ export const noteService = {
     return note;
   },
 
-  updateNote: async (userId, { id, title, text }) => {
+  updateOneNote: async (userId, { id, title, text }) => {
     const updateParams = {
       TableName: notes,
       Key: { id },
@@ -48,16 +48,21 @@ export const noteService = {
         ":title": title.substring(0, 50),
         ":text": text.substring(0, 300),
         ":modifiedAt": new Date().toISOString(),
+        ":userId": userId,
       },
     };
     const result = await db.send(new UpdateCommand(updateParams));
     return result.Attributes;
   },
 
-  deleteNote: async (userId, id) => {
+  deleteOneNote: async (userId, id) => {
     const deleteParams = {
       TableName: notes,
       Key: { id },
+      ConditionExpression: "userId = :userId",
+      ExpressionAttributeValues: {
+        ":userId": userId,
+      },
     };
     await db.send(new DeleteCommand(deleteParams));
   },

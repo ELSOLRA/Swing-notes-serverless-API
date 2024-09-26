@@ -36,12 +36,21 @@ build:
     minify: true
 
 functions:
-  hello:
-    handler: handler.hello
+  notesHandler:
+    handler: src/handlers/notes.handler
     events:
       - httpApi:
-          path: /
-          method: get
+          path: api/notes
+          method: GET
+      - httpApi:
+          path: api/notes
+          method: POST
+      - httpApi:
+          path: api/notes
+          method: PUT
+      - httpApi:
+          path: api/notes/{id}
+          method: DELETE
 
 resources:
   Resources:

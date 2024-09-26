@@ -42,15 +42,58 @@ functions:
       - httpApi:
           path: api/notes
           method: GET
+          cors:
+            allowedHeaders:
+              - Content-Type
+              - Authorization
+            allowedMethods:
+              - GET
       - httpApi:
           path: api/notes
           method: POST
+          cors:
+            allowedHeaders:
+              - Content-Type
+              - Authorization
+            allowedMethods:
+              - POST
       - httpApi:
           path: api/notes
           method: PUT
+          cors:
+            allowedHeaders:
+              - Content-Type
+              - Authorization
+            allowedMethods:
+              - PUT
       - httpApi:
           path: api/notes/{id}
           method: DELETE
+          cors:
+            allowedHeaders:
+              - Content-Type
+              - Authorization
+            allowedMethods:
+              - DELETE
+  userHandler:
+    handler: src/handlers/users.handler
+    events:
+      - httpApi:
+          path: api/user/signup
+          method: POST
+          cors:
+            allowedHeaders:
+              - Content-Type
+            allowedMethods:
+              - POST
+      - httpApi:
+          path: api/user/login
+          method: POST
+          cors:
+            allowedHeaders:
+              - Content-Type
+            allowedMethods:
+              - POST
 
 resources:
   Resources:

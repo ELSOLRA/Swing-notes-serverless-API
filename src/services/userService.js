@@ -1,9 +1,8 @@
-import { v4 } from "uuid";
-import { db } from "./db.mjs";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
-import { ScanCommand } from "@aws-sdk/client-dynamodb";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+const { v4 } = require("uuid");
+const { PutCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const db = require("./db");
 
 const users = process.env.USERS;
 
@@ -17,7 +16,7 @@ const getUser = async (username) => {
   return result.Items[0];
 };
 
-export const userService = {
+exports.userService = {
   signup: async ({ username, password }) => {
     const existingUser = await getUser(username);
     if (existingUser) {
@@ -38,6 +37,7 @@ export const userService = {
 
   login: async ({ username, password }) => {
     const user = await getUser(username);
+    console.log("User---", user);
 
     if (!user) {
       throw new Error("Invalid credentials");
@@ -47,6 +47,8 @@ export const userService = {
     if (!passwordValid) {
       throw new Error("Invalid credentials");
     }
-    return jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "1h" });
+    return jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
   },
 };

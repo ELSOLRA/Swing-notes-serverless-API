@@ -1,7 +1,7 @@
-import jwt from "jsonwebtoken";
-import { apiResponse } from "../utils/apiResponse";
+const jwt = require("jsonwebtoken");
+const { apiResponse } = require("../utils/apiResponse");
 
-export const authMiddleware = () => {
+exports.authMiddleware = () => {
   return {
     before: async (handler) => {
       const authHeader =

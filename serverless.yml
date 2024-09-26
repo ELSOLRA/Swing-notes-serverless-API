@@ -11,7 +11,19 @@ provider:
     JWT_SECRET: RE55
     NOTES: Notes-table
     USERS: Users-table
-    NODE_OPTIONS: --experimental-vm-modules
+    # NODE_OPTIONS: --experimental-vm-modules
+  httpApi:
+    cors:
+      # allowedOrigins:
+      #   - https://url1.com   // this is for specific domain
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
   iam:
     role:
       statements:
@@ -24,8 +36,8 @@ provider:
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
           Resource:
-            - arn:aws:dynamodb:${self:provider.region}:*table/${self:provider.environment.NOTES}
             - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.NOTES}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.USERS}
 
 package:
   individually: true
@@ -40,60 +52,27 @@ functions:
     handler: src/handlers/notes.handler
     events:
       - httpApi:
-          path: api/notes
+          path: /api/notes
           method: GET
-          cors:
-            allowedHeaders:
-              - Content-Type
-              - Authorization
-            allowedMethods:
-              - GET
       - httpApi:
-          path: api/notes
+          path: /api/notes
           method: POST
-          cors:
-            allowedHeaders:
-              - Content-Type
-              - Authorization
-            allowedMethods:
-              - POST
       - httpApi:
-          path: api/notes
+          path: /api/notes
           method: PUT
-          cors:
-            allowedHeaders:
-              - Content-Type
-              - Authorization
-            allowedMethods:
-              - PUT
       - httpApi:
-          path: api/notes/{id}
+          path: /api/notes/{id}
           method: DELETE
-          cors:
-            allowedHeaders:
-              - Content-Type
-              - Authorization
-            allowedMethods:
-              - DELETE
+
   userHandler:
     handler: src/handlers/users.handler
     events:
       - httpApi:
-          path: api/user/signup
+          path: /api/user/signup
           method: POST
-          cors:
-            allowedHeaders:
-              - Content-Type
-            allowedMethods:
-              - POST
       - httpApi:
-          path: api/user/login
+          path: /api/user/login
           method: POST
-          cors:
-            allowedHeaders:
-              - Content-Type
-            allowedMethods:
-              - POST
 
 resources:
   Resources:

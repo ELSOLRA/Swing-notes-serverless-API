@@ -1,8 +1,8 @@
-import middy from "@middy/core";
-import { noteService } from "../services/noteService.mjs";
-import { apiResponse } from "../utils/apiResponse";
-import jsonBodyParser from "@middy/http-json-body-parser";
-import { authMiddleware } from "../middleware/auth.mjs";
+const middy = require("@middy/core");
+const { noteService } = require("../services/noteService.js");
+const { apiResponse } = require("../utils/apiResponse.js");
+const jsonBodyParser = require("@middy/http-json-body-parser");
+const { authMiddleware } = require("../middleware/auth.js");
 
 const noteHandlers = {
   /*     handle: async (event) => {
@@ -42,7 +42,7 @@ const noteHandlers = {
   },
   updateNote: async (event) => {
     try {
-      const note = await noteService.saveOneNote(event.userId, event.body);
+      const note = await noteService.updateOneNote(event.userId, event.body);
       return apiResponse(200, note);
     } catch (error) {
       console.error(error);
@@ -51,11 +51,30 @@ const noteHandlers = {
   },
   deleteNote: async (event) => {
     try {
-      await noteService.deleteOneNote(event.userId, event.pathParameters.id);
-      return apiResponse(204, {
-        success: true,
-        message: `Note with id ${event.pathParameters.id} deleted`,
-      });
+      console.log("Delete event:", JSON.stringify(event, null, 2));
+      const noteId = event.pathParameters.id;
+
+      const result = await noteService.deleteOneNote(event.userId, noteId);
+      switch (result.status) {
+        case "DELETED":
+          return apiResponse(200, {
+            success: true,
+            message: `Note with id ${noteId} deleted`,
+            deletedNote: result.deletedNote,
+          });
+        case "NOT_FOUND":
+          return apiResponse(404, {
+            success: false,
+            message: `Note with id ${noteId} not found`,
+          });
+        case "FORBIDDEN":
+          return apiResponse(403, {
+            success: false,
+            message: "You don't have permission to delete this note",
+          });
+        default:
+          throw new Error("Unexpected result status");
+      }
     } catch (error) {
       console.error(error);
       return apiResponse(500, { message: "Error deleting note" });
@@ -63,15 +82,27 @@ const noteHandlers = {
   },
 };
 
-export const handler = middy((event) => {
+exports.handler = middy((event) => {
   /*   noteHandlers.handle(event); */ /* version 2 */
-  const { httpMethod, resource } = event;
+
+  const {
+    requestContext: {
+      http: { method: httpMethod },
+    },
+    rawPath: path,
+  } = event;
+
+  if (httpMethod === "DELETE" && path.startsWith("/api/notes/")) {
+    return noteHandlers.deleteNote(event);
+  }
+
+  console.log(`Received request: ${httpMethod} ${path}`);
   const handlerName = {
     "GET /api/notes": "getNotes",
     "POST /api/notes": "saveNote",
     "PUT /api/notes": "updateNote",
-    "DELETE /api/notes/{id}": "deleteNote",
-  }[`${httpMethod} ${resource}`];
+    // "DELETE /api/notes": "deleteNote",
+  }[`${httpMethod} ${path}`];
 
   if (handlerName && noteHandlers[handlerName]) {
     return noteHandlers[handlerName](event);

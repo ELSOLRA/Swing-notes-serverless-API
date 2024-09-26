@@ -1,15 +1,16 @@
-import { ScanCommand } from "@aws-sdk/client-dynamodb";
-import { db } from "./db.mjs";
-import { v4 } from "uuid";
-import {
+const db = require("./db.js");
+const { v4 } = require("uuid");
+const {
   DeleteCommand,
   PutCommand,
   UpdateCommand,
-} from "@aws-sdk/lib-dynamodb";
+  ScanCommand,
+  GetCommand,
+} = require("@aws-sdk/lib-dynamodb");
 
 const notes = process.env.NOTES;
 
-export const noteService = {
+exports.noteService = {
   getAllNotes: async (userId) => {
     const params = {
       TableName: notes,
@@ -43,19 +44,39 @@ export const noteService = {
       TableName: notes,
       Key: { id },
       UpdateExpression:
-        "set title = :title, text = :text, modifiedAt = :modifiedAt",
+        "set title = :title, #text = :text, modifiedAt = :modifiedAt",
+      ExpressionAttributeNames: {
+        "#text": "text",
+      },
       ExpressionAttributeValues: {
         ":title": title.substring(0, 50),
         ":text": text.substring(0, 300),
         ":modifiedAt": new Date().toISOString(),
         ":userId": userId,
       },
+      ConditionExpression: "userId = :userId",
+      ReturnValues: "ALL_NEW",
     };
     const result = await db.send(new UpdateCommand(updateParams));
     return result.Attributes;
   },
 
   deleteOneNote: async (userId, id) => {
+    const getParams = {
+      TableName: notes,
+      Key: { id },
+    };
+
+    const existingNote = await db.send(new GetCommand(getParams));
+
+    if (!existingNote.Item) {
+      return { status: "NOT_FOUND" };
+    }
+
+    if (existingNote.Item.userId !== userId) {
+      return { status: "FORBIDDEN" };
+    }
+
     const deleteParams = {
       TableName: notes,
       Key: { id },
@@ -63,7 +84,9 @@ export const noteService = {
       ExpressionAttributeValues: {
         ":userId": userId,
       },
+      ReturnValues: "ALL_OLD",
     };
-    await db.send(new DeleteCommand(deleteParams));
+    const result = await db.send(new DeleteCommand(deleteParams));
+    return { status: "DELETED", deletedNote: result.Attributes };
   },
 };

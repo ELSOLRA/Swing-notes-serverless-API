@@ -31,6 +31,35 @@ const noteHandlers = {
       return apiResponse(500, { message: "Error retrieving note" });
     }
   },
+  getNote: async (event) => {
+    try {
+      const noteId = event.pathParameters.id;
+
+      if (!noteId) {
+        return apiResponse(400, {
+          success: false,
+          message: "Note ID is required",
+        });
+      }
+      const result = await noteService.getNoteById(event.userId, noteId);
+      if (!result) {
+        return apiResponse(404, {
+          success: false,
+          message: `Note with id ${noteId} not found, or you don't have permission`,
+        });
+      }
+      return apiResponse(200, {
+        success: true,
+        note: result,
+      });
+    } catch (error) {
+      console.error("Error getting note:", error);
+      return apiResponse(500, {
+        success: false,
+        message: "An unexpected error",
+      });
+    }
+  },
   saveNote: async (event) => {
     try {
       const note = await noteService.saveOneNote(event.userId, event.body);
@@ -51,7 +80,6 @@ const noteHandlers = {
   },
   deleteNote: async (event) => {
     try {
-      console.log("Delete event:", JSON.stringify(event, null, 2));
       const noteId = event.pathParameters.id;
 
       const result = await noteService.deleteOneNote(event.userId, noteId);
@@ -89,10 +117,10 @@ exports.handler = middy((event) => {
     requestContext: {
       http: { method: httpMethod },
     },
-    rawPath: path,
+    pathParameters: path,
   } = event;
 
-  if (httpMethod === "DELETE" && path.startsWith("/api/notes/")) {
+  /*   if (httpMethod === "DELETE" && path.startsWith("/api/notes/")) {
     return noteHandlers.deleteNote(event);
   }
 
@@ -106,9 +134,26 @@ exports.handler = middy((event) => {
 
   if (handlerName && noteHandlers[handlerName]) {
     return noteHandlers[handlerName](event);
-  }
+  } */
 
-  return apiResponse(404, { message: "Not Found" });
+  switch (httpMethod) {
+    case "GET":
+      return path?.id
+        ? noteHandlers.getNote(event)
+        : noteHandlers.getNotes(event);
+    case "POST":
+      return noteHandlers.saveNote(event);
+    case "PUT":
+      return noteHandlers.updateNote(event);
+    case "DELETE":
+      if (path?.id) {
+        return noteHandlers.deleteNote(event);
+      } else {
+        return apiResponse(400, { message: "Note ID is required " });
+      }
+    default:
+      return apiResponse(404, { message: "Not Found" });
+  }
 })
   .use(jsonBodyParser())
   .use(authMiddleware());

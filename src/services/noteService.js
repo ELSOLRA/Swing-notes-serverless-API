@@ -22,6 +22,20 @@ exports.noteService = {
     return result.Items;
   },
 
+  getNoteById: async (userId, id) => {
+    const params = {
+      TableName: notes,
+      Key: { id },
+    };
+
+    const result = await db.send(new GetCommand(params));
+    if (result.Item && result.Item.userId === userId) {
+      return result.Item;
+    } else {
+      return null;
+    }
+  },
+
   saveOneNote: async (userId, { title, text }) => {
     const note = {
       id: v4(),

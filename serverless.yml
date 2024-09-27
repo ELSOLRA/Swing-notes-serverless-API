@@ -55,6 +55,9 @@ functions:
           path: /api/notes
           method: GET
       - httpApi:
+          path: /api/notes/{id}
+          method: GET
+      - httpApi:
           path: /api/notes
           method: POST
       - httpApi:

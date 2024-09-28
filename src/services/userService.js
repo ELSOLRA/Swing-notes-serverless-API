@@ -1,8 +1,8 @@
-const { v4 } = require("uuid");
-const { PutCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const db = require("./db");
+import { v4 } from "uuid";
+import { PutCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { hash, compare } from "bcryptjs";
+import { sign } from "jsonwebtoken";
+import db from "./db";
 
 const users = process.env.USERS;
 
@@ -16,13 +16,13 @@ const getUser = async (username) => {
   return result.Items[0];
 };
 
-exports.userService = {
+export const userService = {
   signup: async ({ username, password }) => {
     const existingUser = await getUser(username);
     if (existingUser) {
       throw new Error("Username already exists");
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hash(password, 10);
     const user = {
       id: v4(),
       username,
@@ -42,12 +42,12 @@ exports.userService = {
     if (!user) {
       throw new Error("Invalid credentials");
     }
-    const passwordValid = await bcrypt.compare(password, user.password);
+    const passwordValid = await compare(password, user.password);
 
     if (!passwordValid) {
       throw new Error("Invalid credentials");
     }
-    return jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
+    return sign({ userId: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
   },

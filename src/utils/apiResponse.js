@@ -1,4 +1,4 @@
-exports.apiResponse = (status, data = {}) => {
+export function apiResponse(status, data = {}) {
   return {
     statusCode: status,
     body: JSON.stringify(data),
@@ -6,4 +6,4 @@ exports.apiResponse = (status, data = {}) => {
       "Content-Type": "application/json",
     },
   };
-};
+}

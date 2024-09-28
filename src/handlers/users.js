@@ -1,7 +1,7 @@
-const middy = require("@middy/core");
-const { userService } = require("../services/userService.js");
-const { apiResponse } = require("../utils/apiResponse.js");
-const jsonBodyParser = require("@middy/http-json-body-parser");
+import middy from "@middy/core";
+import { userService } from "../services/userService.js";
+import { apiResponse } from "../utils/apiResponse.js";
+import jsonBodyParser from "@middy/http-json-body-parser";
 
 const signupUser = async (event) => {
   try {
@@ -26,7 +26,7 @@ const loginUser = async (event) => {
   }
 };
 
-exports.handler = middy((event) => {
+export const handler = middy((event) => {
   console.log(
     `HTTP Method--${event.requestContext.http.method}, Path-- ${event.rawPath}`
   );

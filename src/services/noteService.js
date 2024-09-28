@@ -1,16 +1,16 @@
-const db = require("./db.js");
-const { v4 } = require("uuid");
-const {
+import db from "./db.js";
+import { v4 } from "uuid";
+import {
   DeleteCommand,
   PutCommand,
   UpdateCommand,
   ScanCommand,
   GetCommand,
-} = require("@aws-sdk/lib-dynamodb");
+} from "@aws-sdk/lib-dynamodb";
 
 const notes = process.env.NOTES;
 
-exports.noteService = {
+export const noteService = {
   getAllNotes: async (userId) => {
     const params = {
       TableName: notes,

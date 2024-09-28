@@ -1,8 +1,8 @@
-const middy = require("@middy/core");
-const { noteService } = require("../services/noteService.js");
-const { apiResponse } = require("../utils/apiResponse.js");
-const jsonBodyParser = require("@middy/http-json-body-parser");
-const { authMiddleware } = require("../middleware/auth.js");
+import middy from "@middy/core";
+import { noteService } from "../services/noteService.js";
+import { apiResponse } from "../utils/apiResponse.js";
+import jsonBodyParser from "@middy/http-json-body-parser";
+import { authMiddleware } from "../middleware/auth.js";
 
 const noteHandlers = {
   /*     handle: async (event) => {
@@ -110,7 +110,7 @@ const noteHandlers = {
   },
 };
 
-exports.handler = middy((event) => {
+export const handler = middy((event) => {
   /*   noteHandlers.handle(event); */ /* version 2 */
 
   const {

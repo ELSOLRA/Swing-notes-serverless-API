@@ -1,7 +1,7 @@
-const jwt = require("jsonwebtoken");
-const { apiResponse } = require("../utils/apiResponse");
+import { verify } from "jsonwebtoken";
+import { apiResponse } from "../utils/apiResponse";
 
-exports.authMiddleware = () => {
+export function authMiddleware() {
   return {
     before: async (handler) => {
       const authHeader =
@@ -15,7 +15,7 @@ exports.authMiddleware = () => {
           authHeader.split(
             " "
           )[1]; /* eller ---  authHeader.replace("Bearer ", "").trim(); */
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = verify(token, process.env.JWT_SECRET);
         handler.event.userId = decoded.userId;
       } catch (error) {
         console.error("Authentication error:", error);
@@ -23,4 +23,4 @@ exports.authMiddleware = () => {
       }
     },
   };
-};
+}
